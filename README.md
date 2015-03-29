@@ -63,8 +63,8 @@ And you can nest them.
 > Subscript:   x/[1]
 
 + Link and image
-\[text](url)
-![image](url)
+> \[text](url)
+> ![image](url)
 
 + Block and Code block
 > Block must begin with '```' and end with '```'.
