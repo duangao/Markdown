@@ -2,6 +2,7 @@
 
 ## Install
 
+### For Linux
 + First you can download it.
 + cd path_to_markdown.py 
 + ln -s full_path_to_markdown.py  /usr/bin/Markdown 
@@ -9,6 +10,12 @@
 
 + You can run it by Markdown in any path. 
 
+### For Windows
++ download the markdown_win.py file, which support unicode file IO in windows and handle with the end-of-line character(which is \"r\n" instead of "\n")
+
+> make sure you have put python in path.
+
++ You can run it by "python path_to_/markdown_win.py  MD_FILE xxx".
 
 ## Usage
 Markdown source_file [options]
@@ -21,6 +28,7 @@ Markdown source_file [options]
 	Default name is "default_output.html"
 + -p, --print + dest_pdf_file:	
 	Set output in specific PDF file.
+
 > Warning: If you use this option, you must use -o meanwhile.
 
 + -P, --Print +dest_pdf_file:
@@ -90,6 +98,8 @@ Tips: You should connect to Internet.
 ## Dependency
 + wkhtmltopdf
 	PDF export needs wkhtmlpdf,You can download it from \[wkhtmltopdf](wkhtmltopdf.org)
+> For windows,it can work.But you should put the install directory that just like C:\user\xxx\wkhtmlpdf\bin in path.
+
 + mathjax
 	You should connect to Internet to support mathjax working.
 + python3 
