@@ -228,9 +228,8 @@ def link_image(s):
 
 
 def parse(input):
-     global block_state,is_normal
-     is_normal=True
-
+    global block_state,is_normal
+    is_normal=True
     result=input
 
     result=test_state(input)
