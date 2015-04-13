@@ -24,6 +24,7 @@ table_state=TABLE.Init
 orderList_state=ORDERLIST.Init
 block_state=BLOCK.Init
 is_code=False
+is_normal=True
 
 temp_table_first_line=[]
 temp_table_first_line_str=""
@@ -34,19 +35,25 @@ need_mathjax=False
 
 
 def test_state(input):
-    Code_List=["python\n","c++\n"]
+    Code_List=["python\n","c++\n","c\n"]
     global table_state,orderList_state,block_state,is_code,temp_table_first_line,temp_table_first_line_str
 
     result=input
 
+    pattern = re.compile(r'```(\s)*\n')
+    a=pattern.match(input)
+
     # BEGIN: block and code block
-    if input=='```\n' and block_state==BLOCK.Init:
+    if  a and block_state==BLOCK.Init:
         result="<blockquote>"
         block_state=BLOCK.Block
-    elif len(input)>3 and input[0:3]=='```' and input[3:] in Code_List and block_state==BLOCK.Init:
+        is_normal=False
+
+    elif len(input)>4 and input[0:3]=='```' and (input[3:9]=="python" or input[3:6]=="c++" or input[3:4]=="c") and block_state==BLOCK.Init:
         block_state=BLOCK.Block
         result="<code></br>"
         is_code=True
+        is_normal=False
 
     elif block_state==BLOCK.Block and input=='```\n':
         if is_code:
@@ -55,6 +62,7 @@ def test_state(input):
             result="</blockquote>"
         block_state=BLOCK.Init
         is_code=False
+        is_normal=False
 
     elif block_state==BLOCK.Block:
         pattern=re.compile(r'[\n\r\v\f\ ]')
@@ -62,14 +70,19 @@ def test_state(input):
         pattern=re.compile(r'\t')
         result=pattern.sub("&nbsp"*4,result)
         result="<span>"+result+"</span></br>"
+        is_normal=False
     # END
 
     #BEGIN : order list 
     if len(input)>2 and input[0].isdigit() and input[1]=='.' and orderList_state==ORDERLIST.Init:
         orderList_state=ORDERLIST.List
         result="<ol><li>"+input[2:]+"</li>"
+        is_normal=False
+
     elif len(input)>2 and  input[0].isdigit() and input[1]=='.' and orderList_state==ORDERLIST.List:
         result="<li>"+input[2:]+"</li>"
+        is_normal=False
+
     elif orderList_state==ORDERLIST.List and (len(input)<=2 or input[0].isdigit()==False or input[1]!='.'):
         result="</ol>"+input
         orderList_state=ORDERLIST.Init
@@ -96,11 +109,13 @@ def test_state(input):
             if reduce(lambda a,b:a and b,[all_same(i,'-') for i in l],True):
                 table_state=TABLE.Table
                 result="<table><thread><tr>"
+                is_normal=False
            
                 for i in temp_table_first_line:
                     result+="<th>"+i+"</th>"
                 result+="</tr>"
                 result+="</thread><tbody>"
+                is_normal=False
             else:
                 result=temp_table_first_line_str+"</br>"+input
                 table_state=TABLE.Init
@@ -213,12 +228,15 @@ def link_image(s):
 
 
 def parse(input):
+     global block_state,is_normal
+     is_normal=True
+
     result=input
 
     result=test_state(input)
     
 
-    global block_state
+   
     if block_state==BLOCK.Block :
         return result
 
@@ -230,6 +248,7 @@ def parse(input):
             break
     if title_rank!=0:
         result=handleTitle(input,title_rank)
+        return result
     # END
 
     #BEGIN: horizen line 
@@ -242,6 +261,7 @@ def parse(input):
     unorderd=['+','*','-']
     if result != "" and result[0] in unorderd :
         result=handleUnorderd(result)
+        is_normal=False
     # END
 
     f=input[0]
@@ -254,7 +274,7 @@ def parse(input):
     if sys_q:
     
         result=" <blockquote style=\"color:#8fbc8f\"> "*count+"<b>"+input[count:]+"</b>"+"</blockquote>"*count
-
+        is_normal=False
 
     # BEGIN: token replace,while title and list don't use it,so put it behind them.
     result=tokenHandle(result)
@@ -263,7 +283,11 @@ def parse(input):
     #BEGIN: link and image
     result = link_image(result)
     #END
-
+    pa=re.compile(r'^(\s)*$')
+    a=pa.match(input)
+    if input[-1]=="\n" and is_normal==True and not a :
+    
+        result+="</br>"
 
     return result 
 
