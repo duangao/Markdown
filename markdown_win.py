@@ -35,21 +35,25 @@ need_mathjax=False
 
 
 def test_state(input):
-    Code_List=["python\n","c++\n","bash\n"]
+    Code_List=["python\n","c++\n","bash\n","c\n"]
     global table_state,orderList_state,block_state,is_code,temp_table_first_line,temp_table_first_line_str
 
     result=input
 
+    pattern = re.compile(r'```(\s)*\n')
+    a=pattern.match(input)
+
     # BEGIN: block and code block
-    if input=='```\n' and block_state==BLOCK.Init:
+    if a and block_state==BLOCK.Init:
         result="<blockquote>"
         block_state=BLOCK.Block
-    elif len(input)>3 and input[0:3]=='```' and input[3:] in Code_List and block_state==BLOCK.Init:
+
+    elif len(input)>4 and input[0:3]=='```' and (input[3:9]=="python" or input[3:6]=="c++" or input[3:4]=="c") and block_state==BLOCK.Init:
         block_state=BLOCK.Block
         result="<code></br>"
         is_code=True
 
-    elif block_state==BLOCK.Block and input=='```\n':
+    elif block_state==BLOCK.Block and a:
         if is_code:
             result="</code>"
         else:
@@ -58,11 +62,12 @@ def test_state(input):
         is_code=False
 
     elif block_state==BLOCK.Block:
-        pattern=re.compile(r'[\n\r\v\f\ ]')
+        pattern=re.compile(r'[\n\r\v\f]')
         result=pattern.sub("&nbsp",result)
         pattern=re.compile(r'\t')
         result=pattern.sub("&nbsp"*4,result)
         result="<span>"+result+"</span></br>"
+        return result
     # END
 
     #BEGIN : order list 
@@ -344,11 +349,11 @@ def run(source_file,dest_file,dest_pdf_file,only_pdf):
     f_r.write("<meta charset=\"utf-8\"/>")
     
     for eachline in f:
-    	eachline=eachline[0:-2]+eachline[-1]
-    	
-    	result=parse(eachline)
-    	
-    	if result!="":
+        eachline=eachline[0:-2]+eachline[-1]
+        
+        result=parse(eachline)
+        
+        if result!="":
             f_r.write(result)
 
     f_r.write("</br></br></div><div id=\"right\"></div></div>")
